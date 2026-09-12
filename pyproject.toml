@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wa-commitment-tracker"
+version = "0.1.0"
+description = "Turn a WhatsApp sales team's daily commitment messages into an Excel tracker"
+requires-python = ">=3.9"
+dependencies = [
+    "pandas>=1.5",
+    "openpyxl>=3.1",
+]
+
+[project.scripts]
+wa-tracker = "wa_commitment_tracker.cli:main"
+
+[tool.setuptools]
+packages = ["wa_commitment_tracker"]
