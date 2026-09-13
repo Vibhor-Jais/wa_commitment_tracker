@@ -1,6 +1,14 @@
 """Split a raw WhatsApp .txt export into individual (date, time, sender, message) tuples."""
 import re
 
+# Invisible characters WhatsApp exports sometimes insert: left-to-right mark
+# (common on iOS, prepended to every line), right-to-left mark, and a
+# byte-order mark. Left unstripped, U+200E breaks header matching entirely
+# (the line no longer visibly starts with "[" or a digit) and corrupts
+# continuation lines that field parsing later depends on.
+_INVISIBLE_CHARS = "‎‏﻿"
+_INVISIBLE_TABLE = {ord(c): None for c in _INVISIBLE_CHARS}
+
 # Android: "12/09/2026, 08:03 - Member Name: message"
 ANDROID_RE = re.compile(
     r'^(\d{1,2}/\d{1,2}/\d{2,4}),\s*(\d{1,2}:\d{2}(?:\s?[APap][Mm])?)\s*-\s*([^:]+):\s?(.*)$'
@@ -9,6 +17,10 @@ ANDROID_RE = re.compile(
 IOS_RE = re.compile(
     r'^\[(\d{1,2}/\d{1,2}/\d{2,4}),\s*(\d{1,2}:\d{2}(?::\d{2})?\s?[APap][Mm]?)\]\s*([^:]+):\s?(.*)$'
 )
+
+
+def _strip_invisible(line):
+    return line.translate(_INVISIBLE_TABLE)
 
 
 def _match_header(line):
@@ -30,14 +42,15 @@ def split_export(export_text):
     messages = []
     current = None
     for raw_line in export_text.splitlines():
-        header = _match_header(raw_line)
+        line = _strip_invisible(raw_line)
+        header = _match_header(line)
         if header:
             if current:
                 messages.append(current)
             date_str, time_str, sender, first_line = header
             current = {"date": date_str, "time": time_str, "sender": sender, "lines": [first_line]}
         elif current:
-            current["lines"].append(raw_line)
+            current["lines"].append(line)
     if current:
         messages.append(current)
     for m in messages:
