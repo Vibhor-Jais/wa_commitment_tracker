@@ -17,3 +17,10 @@ wa-tracker = "wa_commitment_tracker.cli:main"
 
 [tool.setuptools]
 packages = ["wa_commitment_tracker"]
+
+# Explicit entrypoint for Vercel, since the repo's root app.py is the
+# Streamlit UI, not a Flask app - this sidesteps Vercel's filename-based
+# auto-detection (app.py/index.py/etc. at root or in src/ or app/) entirely
+# and points it directly at the real Flask instance.
+[tool.vercel]
+entrypoint = "api.index:app"
