@@ -104,3 +104,18 @@ def test_blank_template_is_not_a_commitment():
 
 def test_sample_1_is_a_commitment():
     assert is_commitment_message(SAMPLE_1) is True
+
+
+def test_lac_and_lacs_are_lakh_synonyms():
+    assert normalize_amount("3 lac") == 300_000
+    assert normalize_amount("7 lakhs") == 700_000
+    assert normalize_amount("2 lacs") == 200_000
+    assert normalize_amount("5lac") == 500_000
+
+
+def test_trailing_noise_after_a_valid_number_is_ignored():
+    assert normalize_amount("1 noa") == 1
+    assert normalize_amount("1/0") == 1
+    assert normalize_amount("2/2") == 2
+    assert normalize_amount("1-") == 1
+    assert normalize_amount("1 <This message was edited>") == 1
